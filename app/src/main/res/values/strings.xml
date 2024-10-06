@@ -1,0 +1,20 @@
+<resources>
+    <string name="app_name">Monitoring Pantarlih</string>
+    <string-array name="location">
+        <item>Bandar Lampung</item>
+        <item>Lampung Barat</item>
+        <item>Lampung Selatan</item>
+        <item>Lampung Tengah</item>
+        <item>Lampung Timur</item>
+        <item>Lampung Utara</item>
+        <item>Mesuji</item>
+        <item>Metro</item>
+        <item>Pesawaran</item>
+        <item>Pesisir Barat</item>
+        <item>Pringsewu</item>
+        <item>Tanggamus</item>
+        <item>Tulang Bawang</item>
+        <item>Tulang Bawang Barat</item>
+        <item>Way Kanan</item>
+    </string-array>
+</resources>

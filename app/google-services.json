@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "835049587143",
+    "project_id": "kpu-lampung-a3b4d",
+    "storage_bucket": "kpu-lampung-a3b4d.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:835049587143:android:0f17b6557bdaed28d4d9e2",
+        "android_client_info": {
+          "package_name": "com.example.kpuayaya"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCopaU-leTCQ6xphU96Dp20VkqodLrj8ZE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
