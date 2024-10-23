@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/homeFragment"
+        android:title="Home"
+        android:enabled="true"
+        android:icon="@drawable/ic_home"/>
+    <item
+        android:id="@+id/progressFragment"
+        android:title="Progress"
+        android:enabled="true"
+        android:icon="@drawable/ic_progress"/>
+</menu>

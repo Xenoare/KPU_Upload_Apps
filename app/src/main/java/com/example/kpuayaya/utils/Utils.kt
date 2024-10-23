@@ -33,6 +33,28 @@ fun locationConverter(location: String) : String {
     }
 }
 
+fun mapLocationToNumber(location: String?): Int {
+    val locationMap = mapOf(
+        "bandar-lampung" to 0,
+        "lampung-barat" to 1,
+        "lampung-selatan" to 2,
+        "lampung-tengah" to 3,
+        "lampung-timur" to 4,
+        "lampung-utara" to 5,
+        "mesuji" to 6,
+        "metro" to 7,
+        "pesawaran" to 8,
+        "pesisir-barat" to 9,
+        "pringsewu" to 10,
+        "tanggamus" to 11,
+        "tulang-bawang" to 12,
+        "tulang-bawang-barat" to 13,
+        "way-kanan" to 14
+    )
+
+    return locationMap[location?.lowercase()] ?: -1 // Returns -1 if location not found
+}
+
 fun getPath(context: Context, uri: Uri?): String {
     var result: String? = null
     val proj = arrayOf(MediaStore.Images.Media.DATA)

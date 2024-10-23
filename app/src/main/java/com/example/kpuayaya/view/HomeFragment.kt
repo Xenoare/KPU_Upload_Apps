@@ -9,24 +9,29 @@ import android.icu.util.Calendar
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import androidx.fragment.app.Fragment
+import android.view.LayoutInflater
 import android.view.View
 import android.view.View.OnClickListener
-import androidx.activity.enableEdgeToEdge
-import androidx.appcompat.app.AppCompatActivity
+import android.view.ViewGroup
+import androidx.core.content.ContextCompat
+import androidx.core.content.ContextCompat.startActivity
+import androidx.navigation.fragment.findNavController
 import com.example.kpuayaya.R
-import com.example.kpuayaya.databinding.ActivityMainBinding
+import com.example.kpuayaya.databinding.FragmentHomeBinding
 import com.example.kpuayaya.utils.Toaster
 
-class MainActivity : AppCompatActivity(), OnClickListener {
 
-    private lateinit var binding: ActivityMainBinding
+class HomeFragment : Fragment(), OnClickListener {
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        binding = ActivityMainBinding.inflate(layoutInflater)
-        setContentView(binding.root)
+    private lateinit var binding: FragmentHomeBinding
 
-        enableEdgeToEdge()
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
+        binding = FragmentHomeBinding.inflate(inflater, container, false)
 
         val hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
 
@@ -53,7 +58,7 @@ class MainActivity : AppCompatActivity(), OnClickListener {
         binding.content.cvSosialisasi.setOnClickListener(this)
         binding.content.cvInputData.setOnClickListener(this)
 
-
+        return binding.root
     }
 
     override fun onClick(v: View) {
@@ -62,15 +67,13 @@ class MainActivity : AppCompatActivity(), OnClickListener {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                     try {
                         val intent = Intent(ACTION_VIEW, Uri.parse("https://cekdptonline.kpu.go.id/")).apply {
-                            // The URL should either launch directly in a non-browser app
-                            // (if it’s the default), or in the disambiguation dialog
                             addCategory(CATEGORY_BROWSABLE)
                             flags = FLAG_ACTIVITY_NEW_TASK
                         }
                         startActivity(intent)
                     } catch (e: ActivityNotFoundException) {
                         Toaster.show(
-                            this@MainActivity,
+                            requireContext(),
                             "(API 11) No browser available to open the URL",
                         )
                     }
@@ -78,11 +81,11 @@ class MainActivity : AppCompatActivity(), OnClickListener {
                 } else {
                     val intent = Intent(ACTION_VIEW, Uri.parse("https://cekdptonline.kpu.go.id/"))
 
-                    if (intent.resolveActivity(this.packageManager) != null) {
+                    if (intent.resolveActivity(requireActivity().packageManager) != null) {
                         startActivity(intent)
                     } else {
                         Toaster.show(
-                            this,
+                            requireContext(),
                             "No browser available to open the URL",
                         )
                     }
@@ -94,15 +97,13 @@ class MainActivity : AppCompatActivity(), OnClickListener {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                     try {
                         val intent = Intent(ACTION_VIEW, Uri.parse("https://sosialisasi-kpu.vercel.app/")).apply {
-                            // The URL should either launch directly in a non-browser app
-                            // (if it’s the default), or in the disambiguation dialog
                             addCategory(CATEGORY_BROWSABLE)
                             flags = FLAG_ACTIVITY_NEW_TASK
                         }
                         startActivity(intent)
                     } catch (e: ActivityNotFoundException) {
                         Toaster.show(
-                            this@MainActivity,
+                            requireContext(),
                             "(API 11) No browser available to open the URL",
                         )
                     }
@@ -110,11 +111,11 @@ class MainActivity : AppCompatActivity(), OnClickListener {
                 } else {
                     val intent = Intent(ACTION_VIEW, Uri.parse("https://sosialisasi-kpu.vercel.app/"))
 
-                    if (intent.resolveActivity(this.packageManager) != null) {
+                    if (intent.resolveActivity(requireActivity().packageManager) != null) {
                         startActivity(intent)
                     } else {
                         Toaster.show(
-                            this,
+                            requireContext(),
                             "No browser available to open the URL",
                         )
                     }
@@ -123,8 +124,7 @@ class MainActivity : AppCompatActivity(), OnClickListener {
 
             }
             R.id.cvInputData -> {
-                val intent = Intent(this, UploadActivity::class.java)
-                startActivity(intent)
+                findNavController().navigate(R.id.uploadFragment)
             }
         }
     }

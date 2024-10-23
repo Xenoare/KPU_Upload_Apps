@@ -7,4 +7,6 @@ data class PostModel (
     val name: String,
     val timestamp: String,
     val total: Int
-)
+) {
+    constructor() : this("", "", "", "", "", 0)
+}

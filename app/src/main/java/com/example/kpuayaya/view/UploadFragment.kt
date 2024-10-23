@@ -4,28 +4,27 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
+import androidx.fragment.app.Fragment
+import android.view.LayoutInflater
 import android.view.View
-import android.widget.Adapter
+import android.view.ViewGroup
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
-import android.widget.Toast
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
-import com.google.android.material.snackbar.Snackbar
-import androidx.appcompat.app.AppCompatActivity
-import androidx.core.content.ContextCompat.startActivity
-import androidx.navigation.findNavController
-import androidx.navigation.ui.AppBarConfiguration
-import androidx.navigation.ui.navigateUp
-import androidx.navigation.ui.setupActionBarWithNavController
+import androidx.navigation.fragment.findNavController
+import com.example.kpuayaya.MainActivity
 import com.example.kpuayaya.R
-import com.example.kpuayaya.databinding.ActivityUploadBinding
+import com.example.kpuayaya.databinding.FragmentUploadBinding
 import com.example.kpuayaya.model.CitiesModel
 import com.example.kpuayaya.model.PostModel
 import com.example.kpuayaya.utils.Toaster
 import com.example.kpuayaya.utils.getPath
 import com.example.kpuayaya.utils.locationConverter
-import com.google.firebase.Timestamp
+import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.firestore.DocumentReference
+import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.firestore.toObject
 import com.google.firebase.ktx.Firebase
@@ -33,18 +32,12 @@ import com.google.firebase.storage.ktx.storage
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.tasks.await
-import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 import java.util.Calendar
-import java.util.Date
 import java.util.TimeZone
 
-class UploadActivity : AppCompatActivity() {
-
-    private lateinit var binding: ActivityUploadBinding
+class UploadFragment : Fragment() {
+    private lateinit var binding: FragmentUploadBinding
     private lateinit var inputAlamat: Array<String>
     private lateinit var inputAlamatSelected: String
     private lateinit var currentUri: Uri
@@ -55,36 +48,40 @@ class UploadActivity : AppCompatActivity() {
     private lateinit var currentDate: String
     private var total = 0
     private var storageRef = Firebase.storage.reference
-    private var db = Firebase.firestore
     private var tempTotal = 0
     private lateinit var downloadUrl: Uri
+    private var db = Firebase.firestore
+    private var user: FirebaseUser? = Firebase.auth.currentUser
+    private var userRef: DocumentReference = db.collection("users").document(user?.uid!!)
 
     private val galleryLauncher =
         registerForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
             if (uri != null) {
                 currentUri = uri
-                val fileName = getPath(this, uri)
+                val fileName = getPath(requireContext(), uri)
                 binding.tvFilename.text = fileName
                 binding.ivImage.setImageURI(uri)
             } else {
-                Toaster.show(this, "Failed")
+                Toaster.show(requireContext(), "Failed")
             }
-
         }
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-
-        binding = ActivityUploadBinding.inflate(layoutInflater)
-        setContentView(binding.root)
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
+        binding = FragmentUploadBinding.inflate(inflater, container, false)
 
         setInitLayout()
+
+        return binding.root
     }
 
     private fun setInitLayout() {
         inputAlamat = resources.getStringArray(R.array.location)
 
-        val arrayLocation = ArrayAdapter(this, android.R.layout.simple_list_item_1, inputAlamat)
+        val arrayLocation = ArrayAdapter(requireContext(), android.R.layout.simple_list_item_1, inputAlamat)
         arrayLocation.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         binding.spLocation.adapter = arrayLocation
 
@@ -101,7 +98,6 @@ class UploadActivity : AppCompatActivity() {
             }
 
             override fun onNothingSelected(parent: AdapterView<*>?) {}
-
         }
 
         binding.ivImage.setOnClickListener {
@@ -124,7 +120,7 @@ class UploadActivity : AppCompatActivity() {
 
             if (nama.isEmpty() or alamat.isEmpty() or (total == 0) or desc.isEmpty() or uri.isEmpty()) {
                 Toaster.show(
-                    this@UploadActivity, "Data tidak boleh ada yang kosong!",
+                    requireContext(), "Data tidak boleh ada yang kosong!",
                 )
             } else {
                 val storageRef = storageRef.child("images/${alamat}")
@@ -138,24 +134,19 @@ class UploadActivity : AppCompatActivity() {
                 }.addOnCompleteListener { task ->
                     if (task.isSuccessful) {
                         downloadUrl = task.result
-                        Log.d("DownloadUrl",  downloadUrl.toString())
                         setUpload()
                     } else {
-                        Toaster.show(this, "Gagal Upload")
+                        Toaster.show(requireContext(), "Gagal Upload")
                     }
                 }
 
-                Toaster.show(this@UploadActivity, "Successfully uploaded image")
-
+                Toaster.show(requireContext(), "Successfully uploaded image")
             }
-
-
         }
-
     }
 
 
-    private fun setUpload() = CoroutineScope(Dispatchers.IO).launch {
+    private fun setUpload() {
 
         val data = PostModel(
             description = desc,
@@ -166,41 +157,20 @@ class UploadActivity : AppCompatActivity() {
             total = total
         )
 
+        userRef.collection("recent").add(data)
+
         val citiesRef = db.collection("locations").document(alamat)
         citiesRef.get()
-            .addOnSuccessListener {
-                val city = it.toObject<CitiesModel>()
-                tempTotal = city?.current_coklit!!
-            }
-            .addOnFailureListener { exception ->
-                Log.w("Upload", "Error getting documents: ", exception)
-            }
-
         citiesRef.update("current_coklit", tempTotal + data.total)
-            .addOnSuccessListener { Log.d("Upload", "DocumentSnapshot successfully updated!") }
-            .addOnFailureListener { e -> Log.w("Upload", "Error updating document", e) }
 
         val postRef = db.collection("locations").document(data.key).collection("posts")
         postRef.add(data)
-            .addOnSuccessListener { documentReference ->
-                Log.d("Upload", "DocumentSnapshot written with ID: ${documentReference.id}")
-            }
-            .addOnFailureListener { e ->
-                Log.w("Upload", "Error adding document", e)
-            }
 
         val recentRef = db.collection("recent")
         recentRef.add(data)
-            .addOnSuccessListener { documentReference ->
-                Log.d("Upload", "DocumentSnapshot written with ID: ${documentReference.id}")
-            }
-            .addOnFailureListener { e ->
-                Log.w("Upload", "Error adding document", e)
-            }
 
-        startActivity(Intent(this@UploadActivity, MainActivity::class.java))
-
-
+        Toaster.show(requireContext(), "Success Uploading")
+        findNavController().navigate(R.id.homeFragment)
     }
 
 }
